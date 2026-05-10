@@ -1,31 +1,54 @@
 ---
 import { readData } from '../../lib/readData';
+import { getCollection } from 'astro:content';
 
 const menuData = readData('menu.json');
 const menuItems = menuData.items || [];
+const categoriesData = readData('categories.json', []);
+const finalCategoriesData = Array.isArray(categoriesData) ? categoriesData : [];
+
+let allCategories: string[] = finalCategoriesData;
+if (!allCategories.length) {
+    const posts = await getCollection('blog');
+    allCategories = [...new Set(posts.map(p => p.data.category).filter(Boolean))] as string[];
+}
+
+function buildSubItems(item: any) {
+    if (item.showCategories === true) {
+        return allCategories.map((cat: string) => ({
+            label: cat,
+            href: `/categoria/${cat.toLowerCase().replace(/[^a-z0-9]/g, '-')}`
+        }));
+    }
+    return Array.isArray(item.categories) ? item.categories : [];
+}
 ---
 <ul class='mobile-menu'>
-    {menuItems.map((item: any) => (
-        <li class="mb-1.5 relative group item-has-children">
-            <a href={item.href} class="font-semibold leading-9 capitalize text-heading-light group-hover:text-primary block w-full">
-                {item.label}
-            </a>
-            {item.categories?.length > 0 && (
-                <>
-                    <span class='submenu-toggle text-lg w-9 h-9 leading-9 top-0 right-0 absolute text-center cursor-pointer bg-[#f4f4f4] inline-block'>
-                        <i class="icofont-thin-down"></i>
-                    </span>
-                    <ul class="submenu hidden pt-1.5 pl-4 transition-all">
-                        {item.categories.map((sub: any) => (
-                            <li class="mb-1.5 font-medium hover:text-primary">
-                                <a href={sub.href}> {sub.label} </a>
-                            </li>
-                        ))}
-                    </ul>
-                </>
-            )}
-        </li>
-    ))}
+    {menuItems.map((item: any) => {
+        const subItems = buildSubItems(item);
+        const hasSub = subItems.length > 0;
+        return (
+            <li class="mb-1.5 relative group item-has-children">
+                <a href={item.href} class="font-semibold leading-9 capitalize text-heading-light group-hover:text-primary block w-full">
+                    {item.label}
+                </a>
+                {hasSub && (
+                    <>
+                        <span class='submenu-toggle text-lg w-9 h-9 leading-9 top-0 right-0 absolute text-center cursor-pointer bg-[#f4f4f4] inline-block'>
+                            <i class="icofont-thin-down"></i>
+                        </span>
+                        <ul class="submenu hidden pt-1.5 pl-4 transition-all">
+                            {subItems.map((sub: any) => (
+                                <li class="mb-1.5 font-medium hover:text-primary">
+                                    <a href={sub.href}> {sub.label} </a>
+                                </li>
+                            ))}
+                        </ul>
+                    </>
+                )}
+            </li>
+        );
+    })}
 </ul>
 
 <style lang='scss'>
@@ -41,7 +64,7 @@ const menuItems = menuData.items || [];
 
 <script>
     const subMenuToggles = document.querySelectorAll('.submenu-toggle');
-    
+
     subMenuToggles.forEach(btn => {
         btn.addEventListener('click', function(this: HTMLElement) {
             const submenu = this.nextElementSibling;

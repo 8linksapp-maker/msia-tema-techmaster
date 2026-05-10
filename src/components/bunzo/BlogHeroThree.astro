@@ -2,6 +2,7 @@
 import { BLOG_BASE } from '../../lib/postUrl';
 import { getCollection } from 'astro:content';
 import { readData } from '../../lib/readData';
+import { readingTimeLabel } from '../../lib/readingTime';
 
 const homeData = readData('home.json');
 const allPosts = (await getCollection('blog'))
@@ -50,11 +51,19 @@ const hasPosts = heroPosts.length > 0;
                                                 return <span>{a.name}</span>;
                                             })()}
                                         </p>
-                                        <h2 class="text-white text-3xl md:text-4xl lg:text-[45px] font-bold font-heading hover:text-accent transition-colors leading-tight">
-                                            <a href={`${BLOG_BASE}/${post.slug}`}>
-                                                {post.data.title}
-                                            </a>
-                                        </h2>
+                                        {idx === 0 ? (
+                                            <h1 class="text-white text-3xl md:text-4xl lg:text-[45px] font-bold font-heading hover:text-accent transition-colors leading-tight">
+                                                <a href={`${BLOG_BASE}/${post.slug}`}>
+                                                    {post.data.title}
+                                                </a>
+                                            </h1>
+                                        ) : (
+                                            <h2 class="text-white text-3xl md:text-4xl lg:text-[45px] font-bold font-heading hover:text-accent transition-colors leading-tight">
+                                                <a href={`${BLOG_BASE}/${post.slug}`}>
+                                                    {post.data.title}
+                                                </a>
+                                            </h2>
+                                        )}
                                         <div class="text-lg sm:text-xl text-white font-normal pt-4 opacity-90 leading-relaxed font-base" set:html={post.data.description}></div>
                                         <div class="meta flex items-center mt-8 text-accent font-medium">
                                             <div class="flex items-center">
@@ -63,7 +72,7 @@ const hasPosts = heroPosts.length > 0;
                                             </div>
                                             <div class="flex items-center pl-5">
                                                 <i class="icofont-clock-time"></i>
-                                                <p class="pl-2"> 2 min read</p>
+                                                <p class="pl-2">{readingTimeLabel(post)}</p>
                                             </div>
                                         </div>
                                     </div>

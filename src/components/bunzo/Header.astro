@@ -5,9 +5,12 @@ import OffcanvasSearchBox from './OffcanvasSearchBox.astro';
 import { readData } from '../../lib/readData';
 
 const siteConfig = readData('siteConfig.json');
+
+// menuHoverEnabled controla se o submenu abre passando o mouse (true) ou só ao clicar (false)
+const menuHoverEnabled = siteConfig?.menuHoverEnabled !== false;
 ---
 
-<header id="header-main" class="header-main transition-all border-b border-gray-100">
+<header id="header-main" class="header-main transition-all border-b border-gray-100" data-menu-hover={menuHoverEnabled ? 'on' : 'off'}>
     <div class="py-4 lg:py-1">
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-4 items-center justify-between">
@@ -43,7 +46,7 @@ const siteConfig = readData('siteConfig.json');
     .is-sticky {
         @apply fixed top-0 left-0 w-full bg-white z-50 shadow-md animate-fadeInDown;
     }
-    
+
     @keyframes fadeInDown {
         from {
             opacity: 0;
@@ -53,6 +56,21 @@ const siteConfig = readData('siteConfig.json');
             opacity: 1;
             transform: translate3d(0, 0, 0);
         }
+    }
+</style>
+
+<style is:global>
+    /* Modo click-only: neutraliza o hover do Tailwind, mostra apenas via .is-open */
+    header[data-menu-hover="off"] .cms-dropdown:hover > .cms-dropdown-panel {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        transform: translateY(20px) !important;
+    }
+    /* Estado aberto via click sempre visível, em qualquer modo */
+    .cms-dropdown.is-open > .cms-dropdown-panel {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: translateY(0) !important;
     }
 </style>
 
@@ -75,5 +93,23 @@ const siteConfig = readData('siteConfig.json');
 
     openSearchBtn?.addEventListener('click', () => {
         window.dispatchEvent(new CustomEvent('openSearch'));
+    });
+
+    // CMS dropdown — click toggle (acessibilidade + modo click-only)
+    document.querySelectorAll<HTMLElement>('[data-cms-dropdown-trigger]').forEach(trigger => {
+        trigger.addEventListener('click', (e) => {
+            const drop = trigger.closest('.cms-dropdown') as HTMLElement | null;
+            if (!drop) return;
+            e.preventDefault();
+            const wasOpen = drop.classList.contains('is-open');
+            document.querySelectorAll('.cms-dropdown.is-open').forEach(d => d.classList.remove('is-open'));
+            if (!wasOpen) drop.classList.add('is-open');
+        });
+    });
+    document.addEventListener('click', (e) => {
+        const t = e.target as HTMLElement;
+        if (!t.closest('.cms-dropdown')) {
+            document.querySelectorAll('.cms-dropdown.is-open').forEach(d => d.classList.remove('is-open'));
+        }
     });
 </script>

@@ -43,13 +43,10 @@ if (enabled && category) {
 ---
 
 {enabled && relatedPosts.length > 0 && (
-  <div class="related-posts-section">
-    <div class="section-header">
-      <h3 class="section-title">Artigos Relacionados</h3>
-      <img src="/images/wave.svg" class="wave" alt="wave" />
-    </div>
+  <section class="mt-16 pt-12 border-t border-gray-200">
+    <h3 class="text-2xl md:text-3xl font-bold font-heading text-primary mb-8">Artigos Relacionados</h3>
 
-    <div class="row gy-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {relatedPosts.map(post => {
         const postDate = post.data.pubDate instanceof Date
           ? post.data.pubDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
@@ -57,37 +54,37 @@ if (enabled && category) {
         const postCategory = post.data.category || '';
         const catSlug = postCategory.toLowerCase().replace(/[^a-z0-9]/g, '-');
         return (
-          <div class="col-md-4">
-            <div class="post post-grid rounded bordered">
-              {post.data.heroImage && (
-                <div class="thumb top-rounded">
-                  <a href={`${BLOG_BASE}/${post.slug}`}>
-                    <div class="inner">
-                      <img src={post.data.heroImage} alt={post.data.title} loading="lazy" />
-                    </div>
+          <article class="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
+            {post.data.heroImage && (
+              <a href={`${BLOG_BASE}/${post.slug}`} class="block relative overflow-hidden aspect-[16/10]">
+                <img
+                  src={post.data.heroImage}
+                  alt={post.data.title}
+                  loading="lazy"
+                  class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                {postCategory && (
+                  <a
+                    href={`/categoria/${catSlug}`}
+                    class="absolute top-3 left-3 inline-block bg-white/95 backdrop-blur text-primary text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-md hover:bg-primary hover:text-white transition-colors"
+                  >
+                    {postCategory}
                   </a>
-                  {postCategory && (
-                    <a href={`/categoria/${catSlug}`} class="category-badge">{postCategory}</a>
-                  )}
-                </div>
-              )}
-              <div class="details clearfix">
-                <ul class="meta list-inline mb-0">
-                  <li class="list-inline-item">
-                    <a href={`${BLOG_BASE}/${post.slug}`}>{postDate}</a>
-                  </li>
-                </ul>
-                <h4 class="title">
-                  <a href={`${BLOG_BASE}/${post.slug}`}>{post.data.title}</a>
-                </h4>
-                {post.data.description && (
-                  <p class="post-excerpt">{post.data.description}</p>
                 )}
-              </div>
+              </a>
+            )}
+            <div class="p-5 flex flex-col flex-1">
+              <p class="text-sm text-gray-500 mb-2">{postDate}</p>
+              <h4 class="text-lg font-bold font-heading text-heading leading-tight mb-3 group-hover:text-primary transition-colors line-clamp-2">
+                <a href={`${BLOG_BASE}/${post.slug}`}>{post.data.title}</a>
+              </h4>
+              {post.data.description && (
+                <p class="text-sm text-gray-600 line-clamp-2 leading-relaxed">{post.data.description}</p>
+              )}
             </div>
-          </div>
+          </article>
         );
       })}
     </div>
-  </div>
+  </section>
 )}

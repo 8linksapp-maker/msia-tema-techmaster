@@ -6,7 +6,9 @@ const { post } = Astro.props;
 const { Content } = await post.render();
 
 import { readData } from '../../lib/readData';
+import { readingTimeLabel } from '../../lib/readingTime';
 const authors = readData('authors.json', []);
+const readTime = readingTimeLabel(post);
 
 function formatDate(date: Date) {
     return new Date(date).toLocaleDateString('pt-BR', {
@@ -28,7 +30,7 @@ function formatDate(date: Date) {
         <li class="post-date relative mr-4 pr-6 after:w-1 after:h-1 after:bg-primary after:top-1/2 after:right-0 after:transform after:-translate-y-1/2 after:absolute after:content-[''] after:rounded-full last:after:hidden">
             {formatDate(post.data.pubDate)}
         </li>
-        <li class="relative last:after:hidden">3 min read</li>
+        <li class="relative last:after:hidden">{readTime}</li>
     </ul>
     
     <div class="title mb-8">

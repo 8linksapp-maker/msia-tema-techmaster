@@ -2,10 +2,12 @@
 import { BLOG_BASE } from '../../lib/postUrl';
 // Componente PostStyleTwo.astro
 import { readData } from '../../lib/readData';
+import { readingTimeLabel } from '../../lib/readingTime';
 const { post, excerpt = false, textVariant = "text-xl text-primary" } = Astro.props;
 
 const authors = readData('authors.json', []);
 const postAuthor = authors.find((a: any) => a.id === post.data.author) || { name: post.data.author };
+const readTime = readingTimeLabel(post);
 
 function formatDate(date: Date) {
     return new Date(date).toLocaleDateString('pt-BR', {
@@ -32,7 +34,7 @@ function formatDate(date: Date) {
             </div>
             <div class="flex items-center ml-5">
                 <i class="icofont-clock-time"></i>
-                <span class="ml-2">3 min read</span>
+                <span class="ml-2">{readTime}</span>
             </div>
         </div>
         <h3 class={`font-bold font-heading transition-colors group-hover:text-primary leading-tight ${textVariant}`}>

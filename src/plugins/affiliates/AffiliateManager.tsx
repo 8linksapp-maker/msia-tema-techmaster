@@ -47,6 +47,7 @@ interface AffiliateConfig {
   amazonSecretKey: string;
   defaultButtonText: string;
   buttonColor: string;
+  secondaryButtonColor: string;
   showPrices: boolean;
   showRatings: boolean;
   showProscons: boolean;
@@ -62,6 +63,7 @@ const defaultConfig: AffiliateConfig = {
   amazonSecretKey: '',
   defaultButtonText: 'Ver na Amazon',
   buttonColor: '#FF9900',
+  secondaryButtonColor: '',
   showPrices: true,
   showRatings: true,
   showProscons: true,
@@ -407,13 +409,15 @@ export default function AffiliateManager() {
       slug: finalSlug,
       pros: finalPros,
       cons: finalCons,
-      extraLinks: extraLinks.filter(l => l.label.trim() && l.url.trim()),
+      extraLinks: extraLinks
+        .filter(l => l.url.trim())
+        .map(l => ({ label: l.label.trim() || 'Ver loja', url: l.url.trim() })),
       id: editingId || `p_${Date.now()}`,
     };
 
     const newList = editingId
       ? products.map(p => p.id === editingId ? product : p)
-      : [...products, product];
+      : [product, ...products];
 
     setShowForm(false);
     setEditingId(null);
@@ -1093,7 +1097,7 @@ export default function AffiliateManager() {
           </div>
 
           <div>
-            <label className={labelClass}>Cor do botão CTA</label>
+            <label className={labelClass}>Cor do botão CTA principal</label>
             <div className="flex items-center gap-3">
               <input
                 type="color"
@@ -1108,12 +1112,50 @@ export default function AffiliateManager() {
                 className={`${inputClass} font-mono flex-1`}
                 placeholder="#FF9900"
               />
-              {/* Live button preview */}
               <div
                 className="shrink-0 px-4 py-2.5 rounded-xl text-white text-sm font-bold whitespace-nowrap shadow-sm"
                 style={{ background: config.buttonColor }}
               >
                 {config.defaultButtonText} →
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className={labelClass}>Cor dos botões secundários (lojas extras)</label>
+            <p className="text-xs text-slate-400 mb-2">Deixe vazio pra usar o estilo branco padrão.</p>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={config.secondaryButtonColor || '#ffffff'}
+                onChange={e => setConfig(c => ({ ...c, secondaryButtonColor: e.target.value }))}
+                className="w-12 h-12 rounded-xl border border-slate-200 cursor-pointer p-1 shadow-sm"
+              />
+              <input
+                type="text"
+                value={config.secondaryButtonColor}
+                onChange={e => setConfig(c => ({ ...c, secondaryButtonColor: e.target.value }))}
+                className={`${inputClass} font-mono flex-1`}
+                placeholder="(vazio = branco padrão)"
+              />
+              {config.secondaryButtonColor && (
+                <button
+                  type="button"
+                  onClick={() => setConfig(c => ({ ...c, secondaryButtonColor: '' }))}
+                  className="shrink-0 px-3 py-2 rounded-lg text-xs font-bold text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
+                >
+                  Limpar
+                </button>
+              )}
+              <div
+                className="shrink-0 px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap shadow-sm border"
+                style={{
+                  background: config.secondaryButtonColor || '#fff',
+                  color: config.secondaryButtonColor ? '#fff' : '#374151',
+                  borderColor: config.secondaryButtonColor || '#e2e8f0',
+                }}
+              >
+                Mercado Livre →
               </div>
             </div>
           </div>

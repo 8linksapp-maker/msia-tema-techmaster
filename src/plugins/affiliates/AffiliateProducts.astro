@@ -193,6 +193,7 @@ const activeProducts = products.filter((p: any) => p.enabled !== false);
     .aff-cta-secondary {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 0.4rem;
       background: #fff;
       color: #374151 !important;
@@ -201,14 +202,28 @@ const activeProducts = products.filter((p: any) => p.enabled !== false);
       padding: 0.65rem 1.25rem;
       border-radius: 0.625rem;
       text-decoration: none !important;
-      transition: background 0.2s, border-color 0.2s, transform 0.1s;
+      transition: opacity 0.2s, background 0.2s, border-color 0.2s, transform 0.1s;
       border: 1.5px solid #e2e8f0;
       cursor: pointer;
+      flex: 1 1 auto;
+      min-width: 140px;
+    }
+    .aff-cta-secondary.has-color {
+      color: #fff !important;
+      border-color: transparent;
     }
     .aff-cta-secondary:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    .aff-cta-secondary:not(.has-color):hover {
       background: #f8fafc;
       border-color: #cbd5e1;
-      transform: translateY(-1px);
+    }
+    .aff-cta-wrap > .aff-cta { flex: 1 1 auto; min-width: 180px; }
+    @media (max-width: 480px) {
+      .aff-cta-wrap { flex-direction: column; align-items: stretch; }
+      .aff-cta, .aff-cta-secondary { width: 100%; }
     }
     .aff-disclaimer {
       font-size: 0.75rem;
@@ -336,6 +351,7 @@ const activeProducts = products.filter((p: any) => p.enabled !== false);
     products.forEach((p: any) => { productMap[p.slug] = p; });
 
     const buttonColor = config?.buttonColor || '#FF9900';
+    const secondaryButtonColor = (config?.secondaryButtonColor || '').trim();
     const defaultButtonText = config?.defaultButtonText || 'Ver na Amazon';
     const amazonTag = config?.amazonTag || '';
     const showPrices = config?.showPrices !== false;
@@ -516,13 +532,14 @@ const activeProducts = products.filter((p: any) => p.enabled !== false);
 
       const secondaryLinks = getCtaLinks(p);
       secondaryLinks.forEach((link: { label: string; url: string }) => {
-        if (!link.label || !link.url) return;
+        if (!link.url) return;
         const sec = document.createElement('a');
-        sec.className = 'aff-cta-secondary';
+        sec.className = secondaryButtonColor ? 'aff-cta-secondary has-color' : 'aff-cta-secondary';
         sec.href = link.url;
         sec.target = '_blank';
         sec.rel = 'nofollow noopener sponsored';
-        sec.textContent = link.label + ' →';
+        if (secondaryButtonColor) sec.style.background = secondaryButtonColor;
+        sec.textContent = (link.label || 'Ver loja') + ' →';
         ctaWrap.appendChild(sec);
       });
 

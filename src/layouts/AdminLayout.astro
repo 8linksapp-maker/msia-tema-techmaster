@@ -20,8 +20,17 @@ const { title = 'Admin', activeSection = '' } = Astro.props;
     <style>
         /* Quill override */
         .ql-toolbar { border-radius: 8px 8px 0 0 !important; border-color: #e2e8f0 !important; }
-        .ql-container { border-radius: 0 0 8px 8px !important; border-color: #e2e8f0 !important; min-height: 300px; }
-        .ql-editor { font-size: 15px; line-height: 1.7; }
+        .ql-container {
+            border-radius: 0 0 8px 8px !important;
+            border-color: #e2e8f0 !important;
+            min-height: 300px;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        .ql-editor { font-size: 15px; line-height: 1.7; max-width: 100%; word-wrap: break-word; overflow-wrap: anywhere; }
+        .ql-editor img { max-width: 100%; height: auto; }
+        .ql-editor pre, .ql-editor code { white-space: pre-wrap; word-break: break-word; max-width: 100%; }
+        .ql-editor table { display: block; overflow-x: auto; max-width: 100%; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen">
