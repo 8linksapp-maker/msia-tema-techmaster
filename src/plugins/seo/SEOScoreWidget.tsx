@@ -22,8 +22,21 @@ interface Check {
 }
 
 function countWords(html: string): number {
-  const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-  return text ? text.split(' ').length : 0;
+  if (!html) return 0;
+  let text = html;
+  // Remove blocos de script/style — o conteúdo dentro confundiria a contagem
+  text = text.replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, ' ');
+  // Remove comentários HTML
+  text = text.replace(/<!--[\s\S]*?-->/g, ' ');
+  // Remove todas as tags HTML restantes
+  text = text.replace(/<[^>]+>/g, ' ');
+  // Substitui entidades HTML comuns por espaço (&nbsp; &amp; &#160; etc)
+  text = text.replace(/&[a-z#0-9]+;/gi, ' ');
+  // Normaliza qualquer whitespace (inclui   NBSP) em espaço único
+  text = text.replace(/\s+/g, ' ').trim();
+  if (!text) return 0;
+  // Conta tokens não-vazios
+  return text.split(/\s+/).filter(Boolean).length;
 }
 
 export default function SEOScoreWidget({ title, description, heroImage, content }: SEOScoreWidgetProps) {
