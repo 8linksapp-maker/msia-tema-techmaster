@@ -37,9 +37,9 @@ const categories = readData('categories.json', []);
                         <div class="widget">
                             <h4 class="text-white text-xl font-bold font-heading leading-none mb-8">{siteConfig.footer?.col1Title || "Empresa"}</h4>
                             <ul class="space-y-4 font-medium opacity-90">
-                                <li><a href="/sobre" class="hover:text-[#a50eff] transition-colors">Sobre Nós</a></li>
-                                <li><a href="/contato" class="hover:text-[#a50eff] transition-colors">Contato</a></li>
-                                <li><a href="/blog" class="hover:text-[#a50eff] transition-colors">Blog</a></li>
+                                <li><a href="/sobre" class="hover:text-accent transition-colors">Sobre Nós</a></li>
+                                <li><a href="/contato" class="hover:text-accent transition-colors">Contato</a></li>
+                                <li><a href="/blog" class="hover:text-accent transition-colors">Blog</a></li>
                             </ul>
                         </div>
 
@@ -58,7 +58,7 @@ const categories = readData('categories.json', []);
                             <ul class="space-y-4 font-medium opacity-90">
                                 {categories.length > 0 ? categories.slice(0, 8).map((cat: string) => (
                                     <li>
-                                        <a href={`/categoria/${cat.toLowerCase().replace(/ /g, '-')}`} class="hover:text-[#a50eff] transition-colors">
+                                        <a href={`/categoria/${cat.toLowerCase().replace(/ /g, '-')}`} class="hover:text-accent transition-colors">
                                             {cat}
                                         </a>
                                     </li>
