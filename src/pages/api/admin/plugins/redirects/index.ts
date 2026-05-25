@@ -27,6 +27,27 @@ function toPath(input: string): string {
     return v.startsWith('/') ? v : '/' + v;
 }
 
+/**
+ * Sanitiza o `source` de um redirect pra sintaxe path-to-regexp que o Vercel aceita.
+ * Patterns regex puros (`(.*)`, `(\d+)`) e metacaracteres soltos (`/?` no fim) fazem
+ * o Vercel rejeitar o deploy silenciosamente (hook retorna 201 PENDING mas o job
+ * nunca executa). Aqui convertemos os casos mais comuns que vêm de copy-paste de
+ * .htaccess do WordPress.
+ */
+function sanitizeVercelSource(input: string): string {
+    let v = toPath(input);
+    // /caminho/?  → /caminho   (`/?` é metacaracter inválido fora de grupo)
+    v = v.replace(/\/\?+$/, '');
+    // /author/(.*)  → /author/:rest*
+    v = v.replace(/\(\.\*\)/g, ':rest*');
+    // /prefix(.*)   → /prefix:rest*  (caso sem barra antes do grupo)
+    v = v.replace(/\(\\d\+\)/g, ':num');         // (\d+)
+    v = v.replace(/\(\[\^\/\]\+\)/g, ':segment'); // ([^/]+)
+    // Remove âncoras regex
+    v = v.replace(/^\^/, '').replace(/\$$/, '');
+    return v;
+}
+
 function sanitizeRedirects(list: any[]): any[] {
     return (list || []).map(r => ({
         ...r,
@@ -47,7 +68,7 @@ async function syncVercelJson(redirects: any[]) {
         const vercelRedirects = redirects
             .filter((r: any) => r.enabled && r.from && r.to)
             .map((r: any) => ({
-                source: toPath(r.from),
+                source: sanitizeVercelSource(r.from),
                 destination: toPath(r.to),
                 permanent: r.type === 301,
             }));
