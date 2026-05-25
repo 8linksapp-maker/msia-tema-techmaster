@@ -96,8 +96,47 @@ export default function PostsManager() {
         setQuickEditData({ title: post.title, slug: post.slug, pubDate: post.pubDate ? new Date(post.pubDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0], author: post.author, category: post.category, draft: post.draft, _oldSlug: post.slug, _oldPath: post.path, _sha: post.sha, description: post.description, heroImage: post.heroImage, rawBody: post.rawBody });
     };
 
+    /**
+     * Cria redirect 301 automatico /slug-antigo → /slug-novo via plugin redirects.
+     * Lê siteConfig pra respeitar postUrlPrefix (URL pode ser /slug ou /blog/slug).
+     * Falha silenciosamente se o plugin redirects nao estiver disponivel — o rename
+     * do arquivo eh mais critico que o redirect.
+     */
+    const createSlugRedirect = async (oldSlug: string, newSlug: string) => {
+        try {
+            const cfgRes = await githubApi('read', 'src/data/siteConfig.json').catch(() => null);
+            const cfg = cfgRes?.content ? JSON.parse(cfgRes.content) : {};
+            const prefix = String(cfg.postUrlPrefix || '').replace(/^\/+|\/+$/g, '');
+            const oldUrl = prefix ? `/${prefix}/${oldSlug}` : `/${oldSlug}`;
+            const newUrl = prefix ? `/${prefix}/${newSlug}` : `/${newSlug}`;
+
+            const listRes = await fetch('/api/admin/plugins/redirects');
+            const list: any[] = listRes.ok ? await listRes.json() : [];
+            if (list.some(r => r.from === oldUrl)) return;
+
+            const updated = [...list, {
+                id: `slug-rename-${Date.now()}`,
+                from: oldUrl,
+                to: newUrl,
+                type: 301,
+                enabled: true,
+                createdBy: 'slug-rename',
+            }];
+            await fetch('/api/admin/plugins/redirects', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updated),
+            });
+        } catch (e) {
+            console.warn('createSlugRedirect failed (continuando sem redirect):', e);
+        }
+    };
+
     const saveQuickEdit = async () => {
         if (!quickEditData.title || !quickEditData.slug) return alert('Título e Slug não podem ser vazios.');
+        if (quickEditData.slug !== quickEditData._oldSlug && posts.some(p => p.slug === quickEditData.slug && p.sha !== quickEditData._sha)) {
+            return alert(`Já existe um post com o slug "${quickEditData.slug}". Escolha outro.`);
+        }
         setSaving(true);
         try {
             const targetPath = `src/content/blog/${quickEditData.slug}.md`;
@@ -106,10 +145,12 @@ export default function PostsManager() {
             if (quickEditData.slug !== quickEditData._oldSlug) {
                 await githubApi('write', targetPath, { content: markdown, message: `CMS: Renomeando ${quickEditData.slug}` });
                 await githubApi('delete', quickEditData._oldPath, { sha: quickEditData._sha, message: 'CMS: Apagando slug antigo' });
+                await createSlugRedirect(quickEditData._oldSlug, quickEditData.slug);
+                triggerToast(`Artigo renomeado para "${quickEditData.slug}" — redirect 301 criado automaticamente.`, 'success');
             } else {
                 await githubApi('write', targetPath, { content: markdown, sha: quickEditData._sha, message: `CMS: Edição Rápida ${quickEditData.slug}` });
+                triggerToast('Artigo atualizado com sucesso!', 'success');
             }
-            triggerToast('Artigo atualizado com sucesso!', 'success');
             setEditingSha(null);
             fetchInitialData();
         } catch (e: any) {
