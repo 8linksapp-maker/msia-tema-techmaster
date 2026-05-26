@@ -3,7 +3,7 @@ import {
     LayoutDashboard, FileText, Tag, Users, Home, Info, Phone,
     Shield, Settings, LogOut, ChevronRight, ExternalLink, Navigation,
     Sparkles, Mail
-} from 'lucide-react';
+, FileArchive,} from 'lucide-react';
 
 interface NavItem {
     label: string;
@@ -83,6 +83,7 @@ export default function AdminNav({ activeSection = '', extraItems = [] }: AdminN
                 <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">Sistema</p>
                     <NavLink item={{ label: 'Configurações', href: '/admin/config', icon: Settings, section: 'config' }} active={activeSection === 'config'} />
+                    <NavLink item={{ label: 'Backup', href: '/admin/backup', icon: FileArchive, section: 'backup' }} active={activeSection === 'backup'} />
                 </div>
             </nav>
 
