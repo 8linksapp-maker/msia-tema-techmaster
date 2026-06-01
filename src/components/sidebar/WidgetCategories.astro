@@ -1,4 +1,5 @@
 ---
+import { getCategorySlug } from '../../lib/categorySlug';
 import WidgetTitle from './WidgetTitle.astro';
 
 interface CategoryCount {
@@ -20,7 +21,7 @@ const { categories } = Astro.props;
     {categories.map(cat => (
       <li>
         <a 
-          href={`/categoria/${cat.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`} 
+          href={`/categoria/${getCategorySlug(cat.name)}`} 
           class="flex justify-between items-center py-2 px-4 bg-gray-50 rounded-lg hover:bg-primary hover:text-white transition-all group"
         >
           <span class="font-bold text-gray-700 group-hover:text-white capitalize transition-colors">{cat.name}</span>

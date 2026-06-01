@@ -1,6 +1,7 @@
 ---
 import { readData } from '../../lib/readData';
 import { getCollection } from 'astro:content';
+import { getCategorySlug } from '../../lib/categorySlug';
 
 export interface Props {
     colorVariant?: string;
@@ -22,7 +23,7 @@ function buildSubItems(nav: any) {
     if (nav.showCategories === true) {
         return allCategories.map((cat: string) => ({
             label: cat,
-            href: `/categoria/${cat.toLowerCase().replace(/[^a-z0-9]/g, '-')}`
+            href: `/categoria/${getCategorySlug(cat)}`
         }));
     }
     return Array.isArray(nav.categories) ? nav.categories : [];
