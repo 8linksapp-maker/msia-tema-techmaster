@@ -1,6 +1,7 @@
 ---
 import { readData } from '../../lib/readData';
-import SocialIcon from './SocialIcon.astro';
+import SocialIcon from './SocialIcon.astro'
+import { getCategorySlug } from '../../lib/categorySlug';;
 
 const siteConfig = readData('siteConfig.json');
 const social = siteConfig.social || {};
@@ -56,13 +57,16 @@ const categories = readData('categories.json', []);
                         <div class="widget">
                             <h4 class="text-white text-xl font-bold font-heading leading-none mb-8">Categorias</h4>
                             <ul class="space-y-4 font-medium opacity-90">
-                                {categories.length > 0 ? categories.slice(0, 8).map((cat: string) => (
+                                {categories.length > 0 ? categories.slice(0, 8).map((cat: any) => {
+                                    const catName = typeof cat === 'string' ? cat : (cat?.name || '');
+                                    return (
                                     <li>
-                                        <a href={`/categoria/${cat.toLowerCase().replace(/ /g, '-')}`} class="hover:text-accent transition-colors">
-                                            {cat}
+                                        <a href={`/categoria/${getCategorySlug(cat)}`} class="hover:text-accent transition-colors">
+                                            {catName}
                                         </a>
                                     </li>
-                                )) : (
+                                    );
+                                }) : (
                                     <>
                                         <li><a href="/categoria/autismo" class="hover:text-[#a50eff] transition-colors">Autismo</a></li>
                                         <li><a href="/categoria/enfermagem" class="hover:text-[#a50eff] transition-colors">Enfermagem</a></li>
