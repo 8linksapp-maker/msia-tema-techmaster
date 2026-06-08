@@ -1,7 +1,7 @@
 ---
 import { readData } from '../../lib/readData';
 import { getCollection } from 'astro:content';
-import { getCategorySlug } from '../../lib/categorySlug';
+import { normalizeCategories, type CategoryEntry } from '../../lib/categorySlug';
 
 export interface Props {
     colorVariant?: string;
@@ -11,19 +11,19 @@ const { colorVariant = "text-primary" } = Astro.props;
 const menuData = readData('menu.json');
 const menuItems = menuData.items || [];
 const categoriesData = readData('categories.json', []);
-const finalCategoriesData = Array.isArray(categoriesData) ? categoriesData : [];
 
-let allCategories: string[] = finalCategoriesData;
+let allCategories: CategoryEntry[] = normalizeCategories(categoriesData);
 if (!allCategories.length) {
     const posts = await getCollection('blog');
-    allCategories = [...new Set(posts.map(p => p.data.category).filter(Boolean))] as string[];
+    const fromPosts = [...new Set(posts.map(p => p.data.category).filter(Boolean))];
+    allCategories = normalizeCategories(fromPosts);
 }
 
 function buildSubItems(nav: any) {
     if (nav.showCategories === true) {
-        return allCategories.map((cat: string) => ({
-            label: cat,
-            href: `/categoria/${getCategorySlug(cat)}`
+        return allCategories.map((cat) => ({
+            label: cat.name,
+            href: `/categoria/${cat.slug}`
         }));
     }
     return Array.isArray(nav.categories) ? nav.categories : [];
