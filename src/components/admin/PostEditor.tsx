@@ -24,6 +24,8 @@ export default function PostEditor({ filePath }: PostEditorProps) {
     const [pendingUploads, setPendingUploads] = useState<Record<string, File>>({});
     const [QuillEditor, setQuillEditor] = useState<any>(null);
     const [videoUrlInput, setVideoUrlInput] = useState('');
+    const quillRef = React.useRef<any>(null);
+    const quillFormats = ['header', 'bold', 'italic', 'underline', 'strike', 'list', 'bullet', 'blockquote', 'code-block', 'link', 'image', 'video'];
 
     const insertVideoEmbed = () => {
         const info = parseVideoUrl(videoUrlInput);
@@ -31,10 +33,18 @@ export default function PostEditor({ filePath }: PostEditorProps) {
             triggerToast('URL não reconhecida. Use YouTube (youtube.com/watch ou youtu.be) ou Vimeo.', 'error');
             return;
         }
-        const iframeHtml = `<p><iframe src="${info.embedUrl}" width="100%" height="400" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="aspect-ratio: 16 / 9; height: auto; max-width: 100%; border-radius: 8px;"></iframe></p>`;
-        setPost(p => ({ ...p, content: (p.content || '') + iframeHtml }));
+        const editor = quillRef.current?.getEditor?.();
+        if (editor) {
+            const range = editor.getSelection(true);
+            const idx = range?.index ?? editor.getLength();
+            editor.insertEmbed(idx, 'video', info.embedUrl, 'user');
+            editor.setSelection(idx + 1, 0);
+        } else {
+            const iframeHtml = `<p><iframe src="${info.embedUrl}" width="100%" height="400" frameborder="0" allowfullscreen style="aspect-ratio: 16 / 9; height: auto; max-width: 100%; border-radius: 8px;"></iframe></p>`;
+            setPost(p => ({ ...p, content: (p.content || '') + iframeHtml }));
+        }
         setVideoUrlInput('');
-        triggerToast('Vídeo inserido no final do artigo. Arraste no editor pra reposicionar.', 'success');
+        triggerToast('Vídeo inserido. Salve o artigo pra publicar.', 'success');
     };
 
     const formatDateForInput = (dateStr: string) => {
@@ -250,9 +260,11 @@ export default function PostEditor({ filePath }: PostEditorProps) {
                             <div className="prose prose-slate max-w-none border border-slate-200 rounded-xl p-6 min-h-[300px]" dangerouslySetInnerHTML={{ __html: post.content }} />
                         ) : QuillEditor ? (
                             <QuillEditor
+                                ref={quillRef}
                                 theme="snow"
                                 value={post.content}
                                 onChange={(val: string) => setPost(p => ({ ...p, content: val }))}
+                                formats={quillFormats}
                                 style={{ minHeight: '300px' }}
                             />
                         ) : (
