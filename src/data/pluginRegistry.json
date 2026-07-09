@@ -38,7 +38,7 @@
   {
     "name": "seo",
     "label": "SEO Toolkit",
-    "description": "Gere JSON-LD structured data e veja o score de SEO de cada artigo.",
+    "description": "Gere JSON-LD structured data para os motores de busca.",
     "icon": "SearchCheck",
     "color": "text-emerald-600",
     "bg": "bg-emerald-50",
