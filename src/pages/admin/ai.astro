@@ -6,14 +6,14 @@ import SettingsAI from '../../plugins/ai-generator/SettingsAI';
 import { readData } from '../../lib/readData';
 
 const authorsRaw = readData<any[]>('authors.json', []);
-const categoriesRaw = readData<string[]>('categories.json', []);
+const categoriesRaw = readData<any[]>('categories.json', []);
 const pluginsConfig = readData<any>('pluginsConfig.json', {});
 
 // Normaliza autores para o formato {slug, name} esperado pelo componente
 const authors = authorsRaw.map((a: any) => ({ slug: a.id || a.slug, name: a.name }));
 
-// Categorias no Walker são strings simples
-const categories = categoriesRaw.map((c: string) => ({ slug: c, name: c }));
+// Categorias: aceita string OU objeto {name, slug} (schema mudou pelo mass-fix #19)
+const categories = categoriesRaw.map((c: any) => typeof c === 'string' ? { slug: c, name: c } : { slug: c.slug || c.name, name: c.name });
 
 // Abre em Configurações se não há API key
 const hasApiKey = !!(pluginsConfig?.ai?.apiKey);
