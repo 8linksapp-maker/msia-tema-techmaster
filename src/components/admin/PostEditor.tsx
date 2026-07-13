@@ -28,6 +28,16 @@ export default function PostEditor({ filePath }: PostEditorProps) {
     const [consInput, setConsInput] = useState('');
     const quillRef = React.useRef<any>(null);
     const quillFormats = ['header', 'bold', 'italic', 'underline', 'strike', 'list', 'bullet', 'blockquote', 'code-block', 'link', 'image', 'video'];
+    const quillModules = {
+        toolbar: [
+            [{ header: [1, 2, 3, 4, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ list: 'ordered' }, { list: 'bullet' }],
+            ['blockquote', 'code-block'],
+            ['link', 'image'],
+            ['clean'],
+        ],
+    };
 
     const insertVideoEmbed = () => {
         const info = parseVideoUrl(videoUrlInput);
@@ -334,6 +344,7 @@ export default function PostEditor({ filePath }: PostEditorProps) {
                                 theme="snow"
                                 value={post.content}
                                 onChange={(val: string) => setPost(p => ({ ...p, content: val }))}
+                                modules={quillModules}
                                 formats={quillFormats}
                                 style={{ minHeight: '300px' }}
                             />
