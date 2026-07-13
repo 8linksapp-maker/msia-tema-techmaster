@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, AlertCircle, Loader2, ArrowLeft, Image as ImageIcon, Eye, Edit3, Video } from 'lucide-react';
+import { Save, AlertCircle, Loader2, ArrowLeft, Image as ImageIcon, Eye, Edit3, Video, ListChecks } from 'lucide-react';
 import { marked } from 'marked';
 import { triggerToast } from './CmsToaster';
 import { githubApi } from '../../lib/adminApi';
@@ -23,6 +23,9 @@ export default function PostEditor({ filePath }: PostEditorProps) {
     const [pendingUploads, setPendingUploads] = useState<Record<string, File>>({});
     const [QuillEditor, setQuillEditor] = useState<any>(null);
     const [videoUrlInput, setVideoUrlInput] = useState('');
+    const [prosConsOpen, setProsConsOpen] = useState(false);
+    const [prosInput, setProsInput] = useState('');
+    const [consInput, setConsInput] = useState('');
     const quillRef = React.useRef<any>(null);
     const quillFormats = ['header', 'bold', 'italic', 'underline', 'strike', 'list', 'bullet', 'blockquote', 'code-block', 'link', 'image', 'video'];
 
@@ -44,6 +47,31 @@ export default function PostEditor({ filePath }: PostEditorProps) {
         }
         setVideoUrlInput('');
         triggerToast('Vídeo inserido. Salve o artigo pra publicar.', 'success');
+    };
+
+    const insertProsCons = () => {
+        const pros = prosInput.split('\n').map(s => s.trim()).filter(Boolean);
+        const cons = consInput.split('\n').map(s => s.trim()).filter(Boolean);
+        if (!pros.length && !cons.length) {
+            triggerToast('Adicione ao menos 1 pró ou contra.', 'error');
+            return;
+        }
+        const esc = (s: string) => s.replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c] || c));
+        const prosHtml = pros.length ? `<div class="pros-cons-col pros-col"><h4 class="pros-cons-heading pros-heading">Prós</h4><ul class="pros-cons-list">${pros.map(p => `<li class="pros-item">${esc(p)}</li>`).join('')}</ul></div>` : '';
+        const consHtml = cons.length ? `<div class="pros-cons-col cons-col"><h4 class="pros-cons-heading cons-heading">Contras</h4><ul class="pros-cons-list">${cons.map(c => `<li class="cons-item">${esc(c)}</li>`).join('')}</ul></div>` : '';
+        const block = `<div class="pros-cons">${prosHtml}${consHtml}</div><p></p>`;
+        const editor = quillRef.current?.getEditor?.();
+        if (editor) {
+            const range = editor.getSelection(true);
+            const idx = range?.index ?? editor.getLength();
+            editor.clipboard.dangerouslyPasteHTML(idx, block, 'user');
+        } else {
+            setPost(p => ({ ...p, content: (p.content || '') + block }));
+        }
+        setProsInput('');
+        setConsInput('');
+        setProsConsOpen(false);
+        triggerToast('Bloco Prós e Contras inserido.', 'success');
     };
 
     const formatDateForInput = (dateStr: string) => {
@@ -252,6 +280,49 @@ export default function PostEditor({ filePath }: PostEditorProps) {
                                 >
                                     Inserir vídeo
                                 </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setProsConsOpen(v => !v)}
+                                    className="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
+                                >
+                                    <ListChecks className="w-4 h-4" />
+                                    Prós e Contras
+                                </button>
+                            </div>
+                        )}
+
+                        {!isPreview && prosConsOpen && (
+                            <div className="mb-3 bg-slate-50 border border-slate-200 rounded-xl p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                    <label className={labelClass}>Prós (1 por linha)</label>
+                                    <textarea
+                                        rows={5}
+                                        value={prosInput}
+                                        onChange={e => setProsInput(e.target.value)}
+                                        placeholder={`Segurança biométrica\nInstalação simples\nBateria dura 6 meses`}
+                                        className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-violet-500 font-mono"
+                                    />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Contras (1 por linha)</label>
+                                    <textarea
+                                        rows={5}
+                                        value={consInput}
+                                        onChange={e => setConsInput(e.target.value)}
+                                        placeholder={`Preço acima da média\nApp em inglês`}
+                                        className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-violet-500 font-mono"
+                                    />
+                                </div>
+                                <div className="md:col-span-2 flex justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={insertProsCons}
+                                        disabled={!prosInput.trim() && !consInput.trim()}
+                                        className="bg-violet-600 hover:bg-violet-700 disabled:bg-slate-200 disabled:cursor-not-allowed text-white disabled:text-slate-400 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                                    >
+                                        Inserir bloco no artigo
+                                    </button>
+                                </div>
                             </div>
                         )}
 
