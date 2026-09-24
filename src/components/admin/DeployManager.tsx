@@ -244,10 +244,10 @@ export default function DeployManager() {
                 <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                 <div className="min-w-0">
                     <p className="text-sm font-semibold text-amber-900">
-                        {count === 1 ? 'Você tem 1 alteração não publicada' : `Você tem ${count} alterações não publicadas`}
+                        {count === 1 ? 'Você tem 1 alteração aguardando publicação' : `Você tem ${count} alterações aguardando publicação`}
                     </p>
                     <p className="text-xs text-amber-800 mt-0.5">
-                        Para que apareçam no site, clique em <strong>Fazer Deploy</strong>.{lastMsg ? <span className="text-amber-700"> Última: "{lastMsg}"</span> : null}
+                        Edite quantas vezes quiser — a publicação só acontece quando você clicar em <strong>Fazer Deploy</strong>. Assim você agrupa várias edições em um único deploy.{lastMsg ? <span className="text-amber-700"> Última: "{lastMsg}"</span> : null}
                     </p>
                 </div>
             </div>
