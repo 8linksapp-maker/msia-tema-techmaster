@@ -60,24 +60,57 @@ export const GET: APIRoute = async ({ request }) => {
         let lastDeployedAt = '';
         let building = false;
 
-        const depRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/deployments?per_page=10&environment=Production`, { headers: ghHeaders(token) });
-        if (depRes.ok) {
-            const deployments = await depRes.json() as any[];
-            for (const d of deployments) {
-                const stRes = await fetch(d.statuses_url, { headers: ghHeaders(token) });
-                if (!stRes.ok) continue;
-                const statuses = await stRes.json() as any[];
-                if (!statuses.length) continue;
-                const latest = statuses[0];
-                if (latest.state === 'pending' || latest.state === 'in_progress' || latest.state === 'queued') {
-                    building = true;
-                    if (!lastDeployedSha) lastDeployedSha = d.sha;
-                    continue;
+        // Fonte primária: API Vercel (status REAL do último deploy de produção).
+        // Usa as envs VERCEL_TOKEN + PROJECT_ID configuradas no provisionamento.
+        const vercelToken = (import.meta.env.VERCEL_TOKEN ?? '').trim();
+        const projectId = (import.meta.env.PROJECT_ID ?? '').trim();
+        if (vercelToken && projectId) {
+            const vResp = await fetch(
+                `https://api.vercel.com/v13/deployments?projectId=${encodeURIComponent(projectId)}&target=production&limit=20`,
+                { headers: { Authorization: `Bearer ${vercelToken}` } }
+            );
+            if (vResp.ok) {
+                const vData = await vResp.json() as any;
+                const list = vData?.deployments ?? [];
+                for (const d of list) {
+                    const rs = d?.readyState ?? '';
+                    if (rs === 'QUEUED' || rs === 'BUILDING' || rs === 'INITIALIZING') {
+                        building = true;
+                        continue;
+                    }
+                    if (rs === 'READY' && !lastDeployedSha) {
+                        const s = d?.gitSource?.sha;
+                        if (s) {
+                            lastDeployedSha = s;
+                            lastDeployedAt = d?.ready ?? d?.created ?? null;
+                            break;
+                        }
+                    }
                 }
-                if (latest.state === 'success' && !lastDeployedSha) {
-                    lastDeployedSha = d.sha;
-                    lastDeployedAt = latest.created_at;
-                    break;
+            }
+        }
+
+        // Fallback: GitHub Deployments API (sites legados sem VERCEL_TOKEN/PROJECT_ID)
+        if (!lastDeployedSha && !building) {
+            const depRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/deployments?per_page=10&environment=Production`, { headers: ghHeaders(token) });
+            if (depRes.ok) {
+                const deployments = await depRes.json() as any[];
+                for (const d of deployments) {
+                    const stRes = await fetch(d.statuses_url, { headers: ghHeaders(token) });
+                    if (!stRes.ok) continue;
+                    const statuses = await stRes.json() as any[];
+                    if (!statuses.length) continue;
+                    const latest = statuses[0];
+                    if (latest.state === 'pending' || latest.state === 'in_progress' || latest.state === 'queued') {
+                        building = true;
+                        if (!lastDeployedSha) lastDeployedSha = d.sha;
+                        continue;
+                    }
+                    if (latest.state === 'success' && !lastDeployedSha) {
+                        lastDeployedSha = d.sha;
+                        lastDeployedAt = latest.created_at;
+                        break;
+                    }
                 }
             }
         }
