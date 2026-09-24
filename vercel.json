@@ -1,8 +1,6 @@
 {
   "git": {
-    "deploymentEnabled": {
-      "main": false
-    }
+    "deploymentEnabled": false
   },
   "crons": [
     {
@@ -11,6 +9,9 @@
     }
   ],
   "rewrites": [
-    { "source": "/search/:term", "destination": "/search?q=:term" }
+    {
+      "source": "/search/:term",
+      "destination": "/search?q=:term"
+    }
   ]
 }
