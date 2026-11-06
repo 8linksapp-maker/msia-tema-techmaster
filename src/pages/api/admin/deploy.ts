@@ -66,20 +66,20 @@ export const GET: APIRoute = async ({ request }) => {
         const projectId = (import.meta.env.PROJECT_ID ?? '').trim();
         if (vercelToken && projectId) {
             const vResp = await fetch(
-                `https://api.vercel.com/v13/deployments?projectId=${encodeURIComponent(projectId)}&target=production&limit=20`,
+                `https://api.vercel.com/v6/deployments?projectId=${encodeURIComponent(projectId)}&target=production&limit=20`,
                 { headers: { Authorization: `Bearer ${vercelToken}` } }
             );
             if (vResp.ok) {
                 const vData = await vResp.json() as any;
                 const list = vData?.deployments ?? [];
                 for (const d of list) {
-                    const rs = d?.readyState ?? '';
+                    const rs = d?.readyState ?? d?.state ?? '';
                     if (rs === 'QUEUED' || rs === 'BUILDING' || rs === 'INITIALIZING') {
                         building = true;
                         continue;
                     }
                     if (rs === 'READY' && !lastDeployedSha) {
-                        const s = d?.gitSource?.sha;
+                        const s = d?.gitSource?.sha ?? d?.meta?.githubCommitSha;
                         if (s) {
                             lastDeployedSha = s;
                             lastDeployedAt = d?.ready ?? d?.created ?? null;
